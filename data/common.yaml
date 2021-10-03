@@ -1,0 +1,13 @@
+---
+profile_synapse::manage_repo: true
+profile_synapse::package_ensure: 'installed'
+profile_synapse::server_name: "%{facts.networking.fqdn}"
+profile_synapse::listen_address: "%{facts.networking.ip}"
+profile_synapse::listen_port: 8008
+profile_synapse::postgres_host: '127.0.0.1'
+profile_synapse::postgres_collect_tag: ~
+profile_synapse::additional_config: {}
+profile_synapse::manage_firewall_entry: true
+profile_synapse::sd_service_name: 'matrix-synapse'
+profile_synapse::sd_service_tags: []
+...
