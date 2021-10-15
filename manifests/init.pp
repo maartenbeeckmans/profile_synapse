@@ -8,7 +8,6 @@ class profile_synapse (
   String           $listen_address,
   Integer          $listen_port,
   String           $postgres_host,
-  Optional[String] $postgres_collect_tag,
   Hash             $additional_config,
   Boolean          $manage_firewall_entry,
   String           $sd_service_name,
@@ -22,7 +21,7 @@ class profile_synapse (
     'user'     => 'synapse',
     'password' => $postgres_password,
     'database' => 'matrix-synapse',
-    'host'     => $postgres_host,
+    'host'     => 'localhost',
     'cp_min'   => 5,
     'cp_max'   => 10,
   }
@@ -55,7 +54,6 @@ class profile_synapse (
   profile_postgres::database { 'matrix-synapse':
     user     => 'synapse',
     password => $postgres_password,
-    tag      => $postgres_collect_tag,
   }
 
   if $manage_sd_service {
