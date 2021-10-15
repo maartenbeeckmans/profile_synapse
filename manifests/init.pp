@@ -60,7 +60,7 @@ class profile_synapse (
     consul::service { $sd_service_name:
       checks => [
         {
-          http     => "http://${listen_address}:${listen_port}",
+          http     => "http://${listen_address}:${listen_port}/health",
           interval => '10s'
         }
       ],
