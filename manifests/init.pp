@@ -54,6 +54,8 @@ class profile_synapse (
   profile_postgres::database { 'matrix-synapse':
     user     => 'synapse',
     password => $postgres_password,
+    encoding => 'UTF8',
+    locale   => 'C',
   }
 
   if $manage_sd_service {
