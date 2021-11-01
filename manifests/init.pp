@@ -32,8 +32,8 @@ class profile_synapse (
     package_ensure      => $package_ensure,
     server_name         => $server_name,
     web_client_location => $web_client_location,
-    listen_address      => $listen_address,
-    listen_port         => $listen_port,
+    listen_address      => '127.0.0.1',
+    listen_port         => 8008,
     database_name       => 'psycopg2',
     database_args       => $_database_args,
     additional_config   => $additional_config,
@@ -41,11 +41,35 @@ class profile_synapse (
     macaroon_secret_key => $macaroon_secret_key,
   }
 
-  if $manage_firewall_entry {
-    firewall { "0${listen_port} allow matrix synapse":
-      dport  => $listen_port,
-      action => 'accept',
-    }
+  profile_apache::vhost { $server_name:
+    listen_address        => $listen_address,
+    port                  => 80,
+    docroot               => false,
+    request_headers       => [ 'set "X-Forwarded-Proto" expr=%{REQUEST_SCHEME}' ],
+    allow_encoded_slashes => 'nodecode',
+    proxy_preserve_host   => true,
+    proxy_pass            => [
+      {
+        'path'     => '/health',
+        'url'      => "http://127.0.0.1:8008/health",
+        'keywords' => ['nocanon'],
+      },
+      {
+        'path'     => '/_matrix',
+        'url'      => "http://127.0.0.1:8008/_matrix",
+        'keywords' => ['nocanon'],
+      },
+      {
+        'path'     => '/_synapse/client',
+        'url'      => "http://127.0.0.1:8008/_synapse/client",
+        'keywords' => ['nocanon'],
+      },
+    ],
+    manage_firewall_entry => $manage_firewall_entry,
+    manage_sd_service     => $manage_sd_service,
+    sd_service_name       => $sd_service_name,
+    sd_check_uri          => 'health',
+    sd_service_tags       => $sd_service_tags,
   }
 
   # Additional package required for postgres
@@ -58,18 +82,5 @@ class profile_synapse (
     password => $postgres_password,
     encoding => 'UTF8',
     locale   => 'C',
-  }
-
-  if $manage_sd_service {
-    consul::service { $sd_service_name:
-      checks => [
-        {
-          http     => "http://${listen_address}:${listen_port}/health",
-          interval => '10s'
-        }
-      ],
-      port   => $listen_port,
-      tags   => $sd_service_tags,
-    }
   }
 }
